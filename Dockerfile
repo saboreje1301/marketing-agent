@@ -19,7 +19,11 @@ RUN chmod +x entrypoint.sh
 
 # Copiar .env si existe (para desarrollo), pero es OPCIONAL
 # En Render, las variables se inyectan, así que esto es ignorado
+<<<<<<< HEAD
 COPY .env* ./
+=======
+COPY .env* /app/ || true
+>>>>>>> 99c774346dc313722891063aa72ef770d9d55f09
 
 # Crear directorio para credenciales
 RUN mkdir -p /app/backend/app/infrastructure/google
