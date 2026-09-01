@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: marketing-ai
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfile: ./Dockerfile
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: APP_NAME
+        value: "Marketing AI"
+
+databases:
+  - name: marketing-ai-db
+    databaseName: marketing_ai
+    user: marketing_user
+    region: oregon
+    plan: free
