@@ -5,7 +5,6 @@ from app.models.campaign import Campaign
 from app.repositories.campaign_repository import CampaignRepository
 from app.schemas.campaign import CampaignCreate
 
-
 class CampaignService:
 
     def __init__(self, db: AsyncSession):

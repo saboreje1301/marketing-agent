@@ -6,8 +6,8 @@ echo "📍 Current directory: $(pwd)"
 
 # Intentar ejecutar migraciones (puede fallar si no hay DB, es normal)
 echo "🗄️  Attempting to run database migrations..."
-cd /app/backend
 
+# Las migraciones están en /app/backend/migrations/, y ese es el WORKDIR
 if python -m alembic upgrade head 2>&1 | tee /tmp/migration.log; then
     echo "✅ Migrations completed successfully"
 else
@@ -16,5 +16,4 @@ else
 fi
 
 echo "🚀 Starting FastAPI server..."
-cd /app
 exec "$@"

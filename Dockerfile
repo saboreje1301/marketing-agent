@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-WORKDIR /app
+WORKDIR /app/backend
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
@@ -8,21 +8,17 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copiar requirements (están en raíz)
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copiar código
-COPY backend/ ./backend/
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
+COPY backend/ /app/backend/
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
 
-# Copiar .env si existe (para desarrollo), pero es OPCIONAL
-# En Render, las variables se inyectan, así que esto es ignorado
-COPY .env* ./
-
-# Crear directorio para credenciales
-RUN mkdir -p /app/backend/app/infrastructure/google
+# Copiar .env si existe
+COPY .env* /app/
 
 # Crear usuario no-root
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
@@ -34,5 +30,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 EXPOSE 8000
 
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
