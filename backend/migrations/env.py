@@ -1,29 +1,52 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.core.config import settings
-from app.database.base import Base
+# NO importar settings aquí (causa errores de validación)
+# Leer DATABASE_URL directamente
 
 config = context.config
 
-config.set_main_option(
-    "sqlalchemy.url",
-    (
+# Estrategia de lectura de DATABASE_URL:
+# 1. Variable de entorno (Render)
+# 2. Si no, construir desde env vars individuales
+# 3. Si no, usar default local
+database_url = os.getenv("DATABASE_URL")
+
+if not database_url:
+    # Construir desde variables individuales
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5432")
+    db_name = os.getenv("DB_NAME", "marketing_ai")
+    db_user = os.getenv("DB_USER", "marketing_user")
+    db_password = os.getenv("DB_PASSWORD", "marketing123")
+    
+    database_url = (
         f"postgresql+psycopg://"
-        f"{settings.DB_USER}:"
-        f"{settings.DB_PASSWORD}@"
-        f"{settings.DB_HOST}:"
-        f"{settings.DB_PORT}/"
-        f"{settings.DB_NAME}"
-    ),
-)
+        f"{db_user}:"
+        f"{db_password}@"
+        f"{db_host}:"
+        f"{db_port}/"
+        f"{db_name}"
+    )
+
+config.set_main_option("sqlalchemy.url", database_url)
+
+# Importar Base DESPUÉS de configurar la BD
+try:
+    from app.database.base import Base
+    target_metadata = Base.metadata
+except Exception as e:
+    print(f"⚠️  Warning: Could not import Base: {e}")
+    target_metadata = None
+
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+# target_metadata ya está definida en el try/except arriba
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

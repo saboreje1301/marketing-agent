@@ -6,11 +6,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_NAME: str = "Marketing AI"
 
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
-    DB_USER: str
-    DB_PASSWORD: str
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "marketing_ai"
+    DB_USER: str = "marketing_user"
+    DB_PASSWORD: str = "marketing123"
 
     DEBUG: bool = True
 
@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[2] / ".env",
+        env_file_encoding="utf-8",
         extra="ignore",
     )
 

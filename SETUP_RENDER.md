@@ -63,19 +63,47 @@
   - Runtime: `Docker`
   - Plan: **Free**
 
-### 3c. Environment Variables
-- [ ] En el Web Service, sección **Environment**
-- [ ] Añadir variables:
+### 3c. Environment Variables y Secrets (⚠️ IMPORTANTE)
 
-```
-DEBUG=False
-APP_NAME=Marketing AI
-DATABASE_URL=postgresql://marketing_user:PASSWORD@dpg-xxx.internal:5432/marketing_ai
-GEMINI_API_KEY=sk-...
-GOOGLE_SEARCH_CONSOLE_ACCESS_TOKEN=ya29.a0AdMD6...
-GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN=1//0f5IVsnqNYJ3OCgYI...
-GOOGLE_SEARCH_CONSOLE_SITE_URL=sc-domain:parteluzarquitectura.com
-```
+Render tiene dos sistemas - **Secrets es más seguro**:
+
+**Opción A: Subir archivo .env (recomendado - más seguro)**
+
+1. En Settings → Environment
+2. Click **"Load from file"**
+3. Sube `backend/.env` local
+4. Render automáticamente:
+   - Clasifica tokens/keys como **Secrets** (encriptados)
+   - Clasifica config pública como **Environment Variables**
+5. ✅ No se exponen en logs
+
+**Opción B: Manual (si prefieres)**
+
+- [ ] En el Web Service, sección **Environment**
+- [ ] **Environment Variables** (públicas):
+  ```
+  DEBUG=False
+  APP_NAME=Marketing AI
+  GEMINI_MODEL=gemini-3.6-flash
+  GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+  GOOGLE_SEARCH_CONSOLE_SITE_URL=sc-domain:parteluzarquitectura.com
+  ```
+
+- [ ] **Secrets** (encriptadas):
+  ```
+  DATABASE_URL=postgresql://marketing_user:PASSWORD@dpg-xxx.internal:5432/marketing_ai
+  GEMINI_API_KEY=sk-...
+  GOOGLE_SEARCH_CONSOLE_ACCESS_TOKEN=ya29.a0AdMD6...
+  GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN=1//0f5IVsnqNYJ3OCgYI...
+  GOOGLE_ADS_DEVELOPER_TOKEN=...
+  GOOGLE_ADS_CLIENT_ID=...
+  GOOGLE_ADS_CLIENT_SECRET=...
+  GOOGLE_ADS_REFRESH_TOKEN=...
+  GOOGLE_ADS_LOGIN_CUSTOMER_ID=...
+  GOOGLE_ADS_CUSTOMER_ID=...
+  ```
+
+📖 Ver [RENDER_SECRETS.md](RENDER_SECRETS.md) para más detalles sobre seguridad
 
 - [ ] **Create Web Service**
 - [ ] **Esperar deploy** (3-5 minutos)

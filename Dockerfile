@@ -12,12 +12,16 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código (sin credenciales)
+# Copiar código
 COPY backend/ ./backend/
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-# Crear directorio para credenciales (se montan en runtime si es necesario)
+# Copiar .env si existe (para desarrollo), pero es OPCIONAL
+# En Render, las variables se inyectan, así que esto es ignorado
+COPY .env* /app/ || true
+
+# Crear directorio para credenciales
 RUN mkdir -p /app/backend/app/infrastructure/google
 
 # Crear usuario no-root
