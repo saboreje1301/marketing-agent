@@ -24,6 +24,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/", tags=["root"])
+async def root():
+    return {"status": "ok", "service": "Marketing AI Agent"}
+
 app.include_router(health_router)
 app.include_router(campaign_router)
 app.include_router(automation_router)
