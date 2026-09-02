@@ -29,11 +29,11 @@ async def optimize_for_conversions(
         dict con resultados de optimización
     """
     
-    # 1. Obtener métricas de la campaña
-    campaign_metrics = get_campaign_metrics(campaign_id)
+    # 1. Obtener métricas de la campaña (últimos 30 días)
+    campaign_metrics = get_campaign_metrics(campaign_id, date_range="LAST_30_DAYS")
     
     # 2. Obtener métricas por ad group
-    ad_groups = get_ad_group_metrics(campaign_id)
+    ad_groups = get_ad_group_metrics(campaign_id, date_range="LAST_30_DAYS")
     
     # 3. Calcular eficiencia de conversión por ad group
     optimizations = []
