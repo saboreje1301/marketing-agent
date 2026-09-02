@@ -300,3 +300,120 @@ def create_search_ad(
 		"status": "PAUSED",
 		"final_url": final_url.strip(),
 	}
+
+
+def get_ad_group_metrics(campaign_id: str, date_range: str = "LAST_30_DAYS") -> list[dict]:
+	"""Obtiene métricas de todos los ad groups de una campaña."""
+	customer_id = settings.GOOGLE_ADS_CUSTOMER_ID.strip().replace("-", "")
+	if not customer_id or not customer_id.isdigit():
+		raise ValueError("GOOGLE_ADS_CUSTOMER_ID debe ser numérico y no contener guiones")
+	if not campaign_id.isdigit():
+		raise ValueError("El ID de campaña de Google Ads debe ser numérico")
+
+	query = f"""
+		SELECT
+		  ad_group.id,
+		  ad_group.name,
+		  metrics.conversions,
+		  metrics.clicks,
+		  metrics.cost_micros,
+		  metrics.average_cpc,
+		  ad_group.cpc_bid_micros
+		FROM ad_group
+		WHERE campaign.id = {campaign_id}
+		  AND segments.date DURING {date_range}
+		ORDER BY ad_group.id
+	"""
+	response = get_google_ads_client().get_service("GoogleAdsService").search(
+		customer_id=customer_id,
+		query=query,
+	)
+
+	ad_groups = []
+	for row in response:
+		ad_groups.append({
+			"id": str(row.ad_group.id),
+			"name": row.ad_group.name,
+			"conversions": row.metrics.conversions,
+			"clicks": row.metrics.clicks,
+			"cost": Decimal(row.metrics.cost_micros) / Decimal("1000000"),
+			"avg_cpc": Decimal(row.metrics.average_cpc) / Decimal("1000000"),
+			"bid": Decimal(row.ad_group.cpc_bid_micros) / Decimal("1000000"),
+		})
+
+	return ad_groups
+
+
+def update_ad_group_bid(campaign_id: str, ad_group_id: str, new_bid: float) -> bool:
+	"""Actualiza el CPC bid de un ad group."""
+	customer_id = settings.GOOGLE_ADS_CUSTOMER_ID.strip().replace("-", "")
+	if not customer_id or not customer_id.isdigit():
+		raise ValueError("GOOGLE_ADS_CUSTOMER_ID debe ser numérico y no contener guiones")
+	if not ad_group_id.isdigit() or not campaign_id.isdigit():
+		raise ValueError("Los IDs deben ser numéricos")
+	if new_bid <= 0:
+		raise ValueError("El bid debe ser mayor que cero")
+
+	client = get_google_ads_client()
+	operation = client.get_type("AdGroupOperation")
+	ad_group = operation.update
+	ad_group.resource_name = client.get_service("GoogleAdsService").ad_group_path(
+		customer_id, ad_group_id
+	)
+	ad_group.cpc_bid_micros = int(Decimal(str(new_bid)) * Decimal("1000000"))
+
+	operation.update_mask.paths.append("cpc_bid_micros")
+
+	response = client.get_service("AdGroupService").mutate_ad_groups(
+		customer_id=customer_id,
+		operations=[operation],
+	)
+
+	return len(response.results) > 0
+
+
+def update_campaign_budget(campaign_id: str, new_budget: float) -> bool:
+	"""Actualiza el presupuesto diario de una campaña."""
+	customer_id = settings.GOOGLE_ADS_CUSTOMER_ID.strip().replace("-", "")
+	if not customer_id or not customer_id.isdigit():
+		raise ValueError("GOOGLE_ADS_CUSTOMER_ID debe ser numérico y no contener guiones")
+	if not campaign_id.isdigit():
+		raise ValueError("El ID de campaña debe ser numérico")
+	if new_budget <= 0:
+		raise ValueError("El presupuesto debe ser mayor que cero")
+
+	client = get_google_ads_client()
+
+	# Primero obtener el budget ID de la campaña
+	query = f"""
+		SELECT campaign.id, campaign.campaign_budget
+		FROM campaign
+		WHERE campaign.id = {campaign_id}
+	"""
+	response = get_google_ads_client().get_service("GoogleAdsService").search(
+		customer_id=customer_id,
+		query=query,
+	)
+
+	budget_resource = None
+	for row in response:
+		budget_resource = row.campaign.campaign_budget
+		break
+
+	if not budget_resource:
+		raise ValueError(f"No se encontró presupuesto para campaña {campaign_id}")
+
+	# Actualizar el presupuesto
+	operation = client.get_type("CampaignBudgetOperation")
+	budget = operation.update
+	budget.resource_name = budget_resource
+	budget.amount_micros = int(Decimal(str(new_budget)) * Decimal("1000000"))
+
+	operation.update_mask.paths.append("amount_micros")
+
+	response = client.get_service("CampaignBudgetService").mutate_campaign_budgets(
+		customer_id=customer_id,
+		operations=[operation],
+	)
+
+	return len(response.results) > 0

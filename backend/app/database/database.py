@@ -5,14 +5,17 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = (
-    f"postgresql+asyncpg://"
-    f"{settings.DB_USER}:"
-    f"{settings.DB_PASSWORD}@"
-    f"{settings.DB_HOST}:"
-    f"{settings.DB_PORT}/"
-    f"{settings.DB_NAME}"
-)
+if settings.DATABASE_URL:
+    DATABASE_URL = settings.DATABASE_URL
+else:
+    DATABASE_URL = (
+        f"postgresql+asyncpg://"
+        f"{settings.DB_USER}:"
+        f"{settings.DB_PASSWORD}@"
+        f"{settings.DB_HOST}:"
+        f"{settings.DB_PORT}/"
+        f"{settings.DB_NAME}"
+    )
 
 engine = create_async_engine(
     DATABASE_URL,
