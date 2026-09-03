@@ -127,6 +127,12 @@ def get_campaign_metrics(campaign_id: str, date_range: str) -> dict[str, str | i
 		average_cpc_micros += row.metrics.average_cpc
 		ctr = row.metrics.ctr
 
+	if not response:
+		raise ValueError(
+			f"La campaña {campaign_id} no existe o no pertenece a la cuenta "
+			f"Google Ads {customer_id}"
+		)
+
 	return {
 		"campaign_id": campaign_id,
 		"date_range": date_range,

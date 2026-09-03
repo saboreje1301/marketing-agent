@@ -5,6 +5,7 @@ Sin dependencia de base de datos.
 
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
+from google.ads.googleads.errors import GoogleAdsException
 
 from app.ai.conversion_optimizer_agent import optimize_for_conversions
 
@@ -53,6 +54,10 @@ async def optimize_campaign(request: OptimizeRequest):
         
         return OptimizeResponse(**result)
     
+    except HTTPException:
+        raise
+    except (GoogleAdsException, ValueError) as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
     except Exception as error:
         raise HTTPException(
             status_code=500,
