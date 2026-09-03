@@ -29,7 +29,12 @@ class Settings(BaseSettings):
     GEMINI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta"
 
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).resolve().parents[2] / ".env",
+        env_file=(
+            Path(__file__).resolve().parents[2] / ".env",
+            Path("/app/.env"),
+            Path("/app/backend/.env"),
+            Path("/etc/secrets/.env"),
+        ),
         env_file_encoding="utf-8",
         extra="ignore",
     )
